@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Schichtkalender für Dienstgruppen A-E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Schichtkalender">
+    <link rel="manifest" href="./manifest.json">
+    <title>Schichtkalender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f5f5f5;
+            padding-bottom: 80px;
+        }
+        
+        .header {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #1d4ed8;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .nav-btn.active {
+            background: #1e40af;
+        }
+        
+        .nav-btn:hover {
+            background: #1e40af;
+        }
+        
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .month-nav {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .month-nav button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .month-nav h2 {
+            font-size: 18px;
+        }
+        
+        .day-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .day-header {
+            padding: 10px 15px;
+            background: #f9fafb;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .day-header.weekend {
+            background: #e5e7eb;
+        }
+        
+        .day-header.holiday {
+            background: #fecaca;
+            color: #991b1b;
+        }
+        
+        .day-header .day-name {
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .day-header .day-num {
+            color: #6b7280;
+        }
+        
+        .shifts-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            padding: 10px;
+        }
+        
+        .shift-cell {
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .shift-cell .group {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .shift-cell .shift-name {
+            font-size: 11px;
+        }
+        
+        .shift-frueh {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .shift-spaet {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+        
+        .shift-nacht {
+            background: #1e3a8a;
+            color: white;
+        }
+        
+        .shift-taglapper {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .shift-nachtlapper {
+            background: #e9d5ff;
+            color: #6b21a8;
+        }
+        
+        .shift-free {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .legend {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 12px;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
+        }
+        
+        .settings-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .settings-section h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .settings-section p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .setting-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-item label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .setting-item select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .date-setting {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .date-setting label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .date-setting input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        
+        .preview-cell {
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .preview-cell .group {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .preview-cell .shift-name {
+            font-size: 11px;
+        }
+        
+        .info-box {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 10px;
+        }
+        
+        .info-box div {
+            margin: 5px 0;
+        }
+        
+        .apply-btn {
+            width: 100%;
+            padding: 15px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .apply-btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .apply-btn:active {
+            background: #1e40af;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Schichtkalender</h1>
+        <div class="nav-buttons">
+            <button class="nav-btn active" id="calendarBtn">Kalender</button>
+            <button class="nav-btn" id="settingsBtn">Einstellungen</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="calendarView">
+            <div class="month-nav">
+                <button id="prevMonth">‹</button>
+                <h2 id="monthTitle"></h2>
+                <button id="nextMonth">›</button>
+            </div>
+            <div id="daysContainer"></div>
+        </div>
+        
+        <div id="settingsView" class="hidden">
+            <div class="settings-section">
+                <h2>Startdatum & Schichtzuteilung</h2>
+                
+                <div class="date-setting">
+                    <label for="startDateInput">Startdatum:</label>
+                    <input type="date" id="startDateInput" value="2025-11-18">
+                </div>
+                
+                <p>Wähle für Gruppe A aus, wo sie am Startdatum im Zyklus steht. Die anderen Gruppen werden automatisch berechnet:</p>
+                <div id="settingsContainer"></div>
+                <button id="applyBtn" class="apply-btn">Einstellungen übernehmen & Kalender anzeigen</button>
+            </div>
+            
+            <div class="settings-section">
+                <h3 style="margin-bottom: 15px;">Vorschau für <span id="previewDate"></span></h3>
+                <div class="preview-grid" id="previewGrid"></div>
+            </div>
+            
+            <div class="info-box">
+                <h3>10-Tage-Zyklus</h3>
+                <div>Tag 1-2: Frühdienst</div>
+                <div>Tag 3-4: Spätdienst</div>
+                <div>Tag 5-6: Nachtdienst</div>
+                <div>Tag 7-8: Nachtlapper</div>
+                <div>Tag 9-10: Taglapper</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="legend">
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-color shift-frueh"></div>
+                <span>Früh</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color shift-spaet"></div>
+                <span>Spät</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color shift-nacht"></div>
+                <span>Nacht</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color shift-taglapper"></div>
+                <span>TL</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color shift-nachtlapper"></div>
+                <span>NL</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color shift-free"></div>
+                <span>/ (frei)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Konstanten
+        const SHIFT_CYCLE = [
+            { day: 1, name: 'Früh', cssClass: 'shift-frueh', short: 'F' },
+            { day: 2, name: 'Früh', cssClass: 'shift-frueh', short: 'F' },
+            { day: 3, name: 'Spät', cssClass: 'shift-spaet', short: 'S' },
+            { day: 4, name: 'Spät', cssClass: 'shift-spaet', short: 'S' },
+            { day: 5, name: 'Nacht', cssClass: 'shift-nacht', short: 'N' },
+            { day: 6, name: 'Nacht', cssClass: 'shift-nacht', short: 'N' },
+            { day: 7, name: 'Nachtlapper', cssClass: 'shift-nachtlapper', short: 'NL' },
+            { day: 8, name: 'Nachtlapper', cssClass: 'shift-nachtlapper', short: 'NL' },
+            { day: 9, name: 'Taglapper', cssClass: 'shift-taglapper', short: 'TL' },
+            { day: 10, name: 'Taglapper', cssClass: 'shift-taglapper', short: 'TL' }
+        ];
+        
+        const GROUPS = ['A', 'B', 'C', 'D', 'E'];
+        
+        // State
+        let currentMonth = new Date('2025-11-18');
+        let groupSettings = loadSettings();
+        let startDate = loadStartDate();
+        
+        function loadSettings() {
+            const saved = localStorage.getItem('shiftGroupSettings');
+            if (saved) {
+                return JSON.parse(saved);
+            } else {
+                // Standard: Gruppe A startet bei Tag 1
+                return calculateAllGroupsFromA(1);
+            }
+        }
+        
+        // Berechne alle Gruppen basierend auf Gruppe A
+        function calculateAllGroupsFromA(groupAStart) {
+            return {
+                A: groupAStart,
+                B: ((groupAStart + 8 - 1) % 10) + 1,  // +8 Tage im Zyklus
+                C: ((groupAStart + 4 - 1) % 10) + 1,  // +4 Tage
+                D: ((groupAStart + 2 - 1) % 10) + 1,  // +2 Tage
+                E: ((groupAStart + 6 - 1) % 10) + 1   // +6 Tage
+            };
+        }
+        
+        // Feiertage NRW berechnen
+        function getHolidays(year) {
+            const holidays = [];
+            
+            // Feste Feiertage
+            holidays.push(new Date(year, 0, 1));   // Neujahr
+            holidays.push(new Date(year, 4, 1));   // Tag der Arbeit
+            holidays.push(new Date(year, 9, 3));   // Tag der Deutschen Einheit
+            holidays.push(new Date(year, 10, 1));  // Allerheiligen
+            holidays.push(new Date(year, 11, 25)); // 1. Weihnachtstag
+            holidays.push(new Date(year, 11, 26)); // 2. Weihnachtstag
+            
+            // Bewegliche Feiertage (Osterdatum-basiert)
+            const easter = calculateEaster(year);
+            holidays.push(new Date(easter.getTime() - 2 * 24 * 60 * 60 * 1000)); // Karfreitag
+            holidays.push(new Date(easter.getTime() + 1 * 24 * 60 * 60 * 1000)); // Ostermontag
+            holidays.push(new Date(easter.getTime() + 39 * 24 * 60 * 60 * 1000)); // Christi Himmelfahrt
+            holidays.push(new Date(easter.getTime() + 50 * 24 * 60 * 60 * 1000)); // Pfingstmontag
+            holidays.push(new Date(easter.getTime() + 60 * 24 * 60 * 60 * 1000)); // Fronleichnam
+            
+            return holidays;
+        }
+        
+        // Osterdatum berechnen (Gauß-Algorithmus)
+        function calculateEaster(year) {
+            const a = year % 19;
+            const b = Math.floor(year / 100);
+            const c = year % 100;
+            const d = Math.floor(b / 4);
+            const e = b % 4;
+            const f = Math.floor((b + 8) / 25);
+            const g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30;
+            const i = Math.floor(c / 4);
+            const k = c % 4;
+            const l = (32 + 2 * e + 2 * i - h - k) % 7;
+            const m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+            const day = ((h + l - 7 * m + 114) % 31) + 1;
+            return new Date(year, month, day);
+        }
+        
+        // Prüfe ob Datum ein Feiertag ist
+        function isHoliday(date) {
+            const holidays = getHolidays(date.getFullYear());
+            return holidays.some(holiday => 
+                holiday.getDate() === date.getDate() &&
+                holiday.getMonth() === date.getMonth() &&
+                holiday.getFullYear() === date.getFullYear()
+            );
+        }
+        
+        // Prüfe ob Datum ein Sonntag ist
+        function isSunday(date) {
+            return date.getDay() === 0;
+        }
+        
+        function loadStartDate() {
+            const saved = localStorage.getItem('shiftStartDate');
+            return saved ? new Date(saved) : new Date('2025-11-18');
+        }
+        
+        function saveSettings() {
+            localStorage.setItem('shiftGroupSettings', JSON.stringify(groupSettings));
+        }
+        
+        function saveStartDate() {
+            localStorage.setItem('shiftStartDate', startDate.toISOString());
+        }
+        
+        function getShiftForDate(group, date) {
+            // Normalisiere beide Datums auf Mitternacht (nur Datum, keine Uhrzeit)
+            const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const normalizedStartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            
+            const daysSinceStart = Math.floor((normalizedDate - normalizedStartDate) / (1000 * 60 * 60 * 24));
+            const startDay = groupSettings[group];
+            // Korrekte Modulo-Berechnung auch für negative Zahlen
+            let cyclePosition = ((startDay - 1 + daysSinceStart) % 10);
+            // Sicherstellen dass cyclePosition zwischen 0 und 9 liegt
+            if (cyclePosition < 0) {
+                cyclePosition += 10;
+            }
+            
+            let shift = SHIFT_CYCLE[cyclePosition];
+            
+            // Sonderregeln für Lapperdienste
+            const holiday = isHoliday(date);
+            const sunday = isSunday(date);
+            
+            // Regel 1: Feiertag + (Taglapper ODER Nachtlapper) → "/"
+            if (holiday && (shift.name === 'Taglapper' || shift.name === 'Nachtlapper')) {
+                return { day: shift.day, name: '/', cssClass: 'shift-free', short: '/' };
+            }
+            
+            // Regel 2: Sonntag + Nachtlapper → Taglapper
+            if (sunday && shift.name === 'Nachtlapper') {
+                return { day: shift.day, name: 'Taglapper', cssClass: 'shift-taglapper', short: 'TL' };
+            }
+            
+            // Regel 3: Sonntag + Taglapper → "/"
+            if (sunday && shift.name === 'Taglapper') {
+                return { day: shift.day, name: '/', cssClass: 'shift-free', short: '/' };
+            }
+            
+            return shift;
+        }
+        
+        function renderCalendar() {
+            const monthTitle = document.getElementById('monthTitle');
+            monthTitle.textContent = currentMonth.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+            
+            const daysContainer = document.getElementById('daysContainer');
+            daysContainer.innerHTML = '';
+            
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dayName = date.toLocaleDateString('de-DE', { weekday: 'short' });
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const holiday = isHoliday(date);
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                
+                const dayHeader = document.createElement('div');
+                let headerClass = 'day-header';
+                if (holiday) {
+                    headerClass += ' holiday';
+                } else if (isWeekend) {
+                    headerClass += ' weekend';
+                }
+                dayHeader.className = headerClass;
+                
+                dayHeader.innerHTML = `
+                    <span class="day-name">${dayName}</span>
+                    <span class="day-num">${day}.${month + 1}.${holiday ? ' 🎉' : ''}</span>
+                `;
+                
+                const shiftsGrid = document.createElement('div');
+                shiftsGrid.className = 'shifts-grid';
+                
+                GROUPS.forEach(group => {
+                    const shift = getShiftForDate(group, date);
+                    const shiftCell = document.createElement('div');
+                    shiftCell.className = `shift-cell ${shift.cssClass}`;
+                    shiftCell.innerHTML = `
+                        <div class="group">${group}</div>
+                        <div class="shift-name">${shift.short}</div>
+                    `;
+                    shiftsGrid.appendChild(shiftCell);
+                });
+                
+                dayCard.appendChild(dayHeader);
+                dayCard.appendChild(shiftsGrid);
+                daysContainer.appendChild(dayCard);
+            }
+        }
+        
+        function renderSettings() {
+            // Datums-Input initialisieren
+            const dateInput = document.getElementById('startDateInput');
+            dateInput.value = startDate.toISOString().split('T')[0];
+            
+            // Event Listener entfernen und neu hinzufügen (verhindert Duplikate)
+            const newDateInput = dateInput.cloneNode(true);
+            dateInput.parentNode.replaceChild(newDateInput, dateInput);
+            
+            newDateInput.addEventListener('change', (e) => {
+                startDate = new Date(e.target.value);
+                saveStartDate();
+                renderPreview();
+            });
+            
+            const settingsContainer = document.getElementById('settingsContainer');
+            settingsContainer.innerHTML = '';
+            
+            // Nur Gruppe A zum Einstellen
+            const settingItem = document.createElement('div');
+            settingItem.className = 'setting-item';
+            
+            const label = document.createElement('label');
+            label.textContent = 'Gruppe A (andere Gruppen werden automatisch berechnet)';
+            label.style.fontWeight = 'bold';
+            
+            const select = document.createElement('select');
+            select.id = 'setting-A';
+            
+            SHIFT_CYCLE.forEach((shift) => {
+                const option = document.createElement('option');
+                option.value = shift.day;
+                option.textContent = `Tag ${shift.day} - ${shift.name}`;
+                if (shift.day === groupSettings.A) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            
+            select.addEventListener('change', (e) => {
+                const groupAValue = parseInt(e.target.value);
+                groupSettings = calculateAllGroupsFromA(groupAValue);
+                saveSettings();
+                renderSettings(); // Neu rendern um alle Gruppen zu aktualisieren
+                renderPreview();
+            });
+            
+            settingItem.appendChild(label);
+            settingItem.appendChild(select);
+            settingsContainer.appendChild(settingItem);
+            
+            // Anzeige der automatisch berechneten Gruppen
+            const autoGroupsDiv = document.createElement('div');
+            autoGroupsDiv.style.marginTop = '20px';
+            autoGroupsDiv.style.padding = '15px';
+            autoGroupsDiv.style.background = '#f0f9ff';
+            autoGroupsDiv.style.borderRadius = '8px';
+            
+            const autoGroupsTitle = document.createElement('h4');
+            autoGroupsTitle.textContent = 'Automatisch berechnete Gruppen:';
+            autoGroupsTitle.style.marginBottom = '10px';
+            autoGroupsTitle.style.fontSize = '14px';
+            autoGroupsDiv.appendChild(autoGroupsTitle);
+            
+            ['B', 'C', 'D', 'E'].forEach(group => {
+                const groupInfo = document.createElement('div');
+                groupInfo.style.margin = '5px 0';
+                groupInfo.style.fontSize = '14px';
+                const shift = SHIFT_CYCLE[groupSettings[group] - 1];
+                groupInfo.innerHTML = `<strong>Gruppe ${group}:</strong> Tag ${shift.day} - ${shift.name}`;
+                autoGroupsDiv.appendChild(groupInfo);
+            });
+            
+            settingsContainer.appendChild(autoGroupsDiv);
+            
+            renderPreview();
+        }
+        
+        function renderPreview() {
+            const today = new Date();
+            const previewDate = today >= startDate ? today : startDate;
+            
+            document.getElementById('previewDate').textContent = previewDate.toLocaleDateString('de-DE');
+            
+            const previewGrid = document.getElementById('previewGrid');
+            previewGrid.innerHTML = '';
+            
+            GROUPS.forEach(group => {
+                const shift = getShiftForDate(group, previewDate);
+                const previewCell = document.createElement('div');
+                previewCell.className = `preview-cell shift-cell ${shift.cssClass}`;
+                previewCell.innerHTML = `
+                    <div class="group">${group}</div>
+                    <div class="shift-name">${shift.name}</div>
+                `;
+                previewGrid.appendChild(previewCell);
+            });
+        }
+        
+        // Event Listeners
+        document.getElementById('calendarBtn').addEventListener('click', () => {
+            document.getElementById('calendarView').classList.remove('hidden');
+            document.getElementById('settingsView').classList.add('hidden');
+            document.getElementById('calendarBtn').classList.add('active');
+            document.getElementById('settingsBtn').classList.remove('active');
+        });
+        
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            document.getElementById('calendarView').classList.add('hidden');
+            document.getElementById('settingsView').classList.remove('hidden');
+            document.getElementById('calendarBtn').classList.remove('active');
+            document.getElementById('settingsBtn').classList.add('active');
+            renderSettings();
+        });
+        
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+        });
+        
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+        });
+        
+        document.getElementById('applyBtn').addEventListener('click', () => {
+            // Einstellungen sind bereits in den Select-Dropdowns gespeichert
+            // Kalender neu rendern und zur Kalenderansicht wechseln
+            renderCalendar();
+            document.getElementById('calendarView').classList.remove('hidden');
+            document.getElementById('settingsView').classList.add('hidden');
+            document.getElementById('calendarBtn').classList.add('active');
+            document.getElementById('settingsBtn').classList.remove('active');
+        });
+        
+        // Initial Render
+        renderCalendar();
+        
+        // Service Worker Registrierung für PWA (Offline-Funktionalität)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registriert - App funktioniert jetzt offline!');
+                    })
+                    .catch(error => {
+                        console.log('Service Worker Registrierung fehlgeschlagen:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
