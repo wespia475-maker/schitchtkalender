@@ -436,10 +436,10 @@
         function calculateAllGroupsFromA(groupAStart) {
             return {
                 A: groupAStart,
-                B: ((groupAStart + 2 - 1) % 10) + 1,  // +2 Tage im Zyklus
+                B: ((groupAStart + 8 - 1) % 10) + 1,  // +2 Tage im Zyklus
                 C: ((groupAStart + 4 - 1) % 10) + 1,  // +4 Tage
-                D: ((groupAStart + 6 - 1) % 10) + 1,  // +6 Tage
-                E: ((groupAStart + 8 - 1) % 10) + 1   // +8 Tage
+                D: ((groupAStart + 2 - 1) % 10) + 1,  // +6 Tage
+                E: ((groupAStart + 6 - 1) % 10) + 1   // +8 Tage
             };
         }
         
